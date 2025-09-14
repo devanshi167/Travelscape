@@ -1,19 +1,63 @@
 // components/home/SOSBar.js
 import React, { useRef, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import * as Location from 'expo-location';
 
 export default function SOSBar({ onPanic, onToggleShare }) {
   const [sharing, setSharing] = useState(true);
   const holdRef = useRef(null);
 
+  const handleSOS = async () => {
+    try {
+      // Get current user
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        Alert.alert("Error", "You must be logged in to use SOS feature");
+        return;
+      }
+
+      // Get current location
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Error", "Location permission is required for SOS");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      
+      // Get Firestore instance
+      const db = getFirestore();
+      
+      // Create a document reference with user ID as the document ID
+      const sosRef = doc(db, "SOS", user.uid);
+      
+      // Set the SOS document with user ID as document ID
+      await setDoc(sosRef, {
+        userId: user.uid,
+        userName: user.displayName || user.email,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        timestamp: new Date(),
+        isActive: true
+      }, { merge: true }); // Using merge: true to update existing document if it exists
+
+      onPanic?.();
+      Alert.alert("SOS Sent", "Emergency services and contacts have been notified of your location.");
+    } catch (error) {
+      console.error("SOS Error:", error);
+      Alert.alert("Error", "Failed to send SOS. Please try again.");
+    }
+  };
+
   return (
     <View style={styles.wrap}>
       <TouchableOpacity
         activeOpacity={0.9}
-        onLongPress={() => {
-          onPanic?.();
-          Alert.alert("SOS Sent", "Nearest unit & contacts alerted.");
-        }}
+        onLongPress={handleSOS}
         delayLongPress={1200}
         style={styles.sos}
       >

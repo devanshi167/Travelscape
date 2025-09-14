@@ -10,15 +10,59 @@ import {
   Platform,
 } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
 
 export default function Signup({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [aadharNumber, setAadharNumber] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [gender, setGender] = useState("");
+  const [age, setAge] = useState("");
 
   const handleSignup = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      // Validate required fields
+      if (!name || !aadharNumber || !contactNumber || !address || !gender || !age || !email || !password) {
+        Alert.alert("Error", "Please fill in all fields");
+        return;
+      }
+
+      // Validate Aadhar number (12 digits)
+      if (aadharNumber.length !== 12) {
+        Alert.alert("Error", "Aadhar number must be 12 digits");
+        return;
+      }
+
+      // Validate contact number (10 digits)
+      if (contactNumber.length !== 10) {
+        Alert.alert("Error", "Contact number must be 10 digits");
+        return;
+      }
+
+      // Create user account
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("DB instance:", db);
+      console.log("User ID:", userCredential.user.uid);
+
+      
+      // Store additional user data in Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name,
+        aadharNumber,
+        contactNumber,
+        address,
+        gender,
+        age,
+        email,
+        createdAt: new Date().toISOString()
+      });
+
+      console.log("User data stored with ID:", userCredential.user.uid);
+
       Alert.alert("Signup Successful", "Now you can login.");
       navigation.navigate("Login");
     } catch (error) {
@@ -34,6 +78,61 @@ export default function Signup({ navigation }) {
       <View style={styles.card}>
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Sign up to get started</Text>
+
+        <TextInput
+          placeholder="Full Name"
+          placeholderTextColor="#aaa"
+          value={name}
+          onChangeText={setName}
+          style={styles.input}
+        />
+
+        <TextInput
+          placeholder="Aadhar Number"
+          placeholderTextColor="#aaa"
+          value={aadharNumber}
+          onChangeText={setAadharNumber}
+          style={styles.input}
+          keyboardType="numeric"
+          maxLength={12}
+        />
+
+        <TextInput
+          placeholder="Contact Number"
+          placeholderTextColor="#aaa"
+          value={contactNumber}
+          onChangeText={setContactNumber}
+          style={styles.input}
+          keyboardType="phone-pad"
+          maxLength={10}
+        />
+
+        <TextInput
+          placeholder="Address"
+          placeholderTextColor="#aaa"
+          value={address}
+          onChangeText={setAddress}
+          style={styles.input}
+          multiline
+        />
+
+        <TextInput
+          placeholder="Gender"
+          placeholderTextColor="#aaa"
+          value={gender}
+          onChangeText={setGender}
+          style={styles.input}
+        />
+
+        <TextInput
+          placeholder="Age"
+          placeholderTextColor="#aaa"
+          value={age}
+          onChangeText={setAge}
+          style={styles.input}
+          keyboardType="numeric"
+          maxLength={3}
+        />
 
         <TextInput
           placeholder="Email"

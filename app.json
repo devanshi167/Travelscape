@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/logo1.png",
         "backgroundColor": "#000000"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.TravelScape"
     },
     "web": {
       "favicon": "./assets/favicon.png"

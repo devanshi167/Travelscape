@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StatusBar, ActivityIndicator, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { provider } from "./utils/blockchain";
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -23,6 +24,23 @@ export default function App() {
   const [booting, setBooting] = useState(true);   // splash timer
   const [authReady, setAuthReady] = useState(false);
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const net = await provider.getNetwork();
+        console.log("✅ Connected to Hardhat:", net);
+
+        // Test registry call
+        const [ok, ts] = await registry.isAnchored(
+          "0x" + "00".repeat(32) // dummy hash
+        );
+        console.log("✅ Registry test:", ok, ts);
+      } catch (e) {
+        // console.error("❌ Provider error:", e);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Splash timer
@@ -63,7 +81,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <StatusBar barStyle="light-content" />
-      <Stack.Navigator
+      {/* <Stack.Navigator
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: '#000' }, // dark theme base
@@ -80,6 +98,20 @@ export default function App() {
             <Stack.Screen name="Signup" component={Signup} />
           </>
         )}
+      </Stack.Navigator> */}
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#000' },
+        }}
+      >
+        {user ? (
+          <Stack.Screen name="Home" component={Home} />
+        ) : (
+          <Stack.Screen name="Landing" component={LandingPage} />
+        )}
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Signup" component={Signup} />
       </Stack.Navigator>
     </NavigationContainer>
   );

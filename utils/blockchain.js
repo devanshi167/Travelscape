@@ -1,7 +1,8 @@
 import { ethers } from "ethers";
 
 const RPC_URL = "http://10.0.2.2:8545"; // ⚠️ use LAN IP or emulator IP
-const REGISTRY_ADDR = "0x5fbdb2315678afecb367f032d93f642f64180aa3"; // from Hardhat deploy
+// const RPC_URL = "http://192.168.1.7:8545"; // ⚠️ use LAN IP or emulator IP
+const REGISTRY_ADDR = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // from Hardhat deploy
 
 const abi = [
   "function anchor(bytes32 vcHash) external",
